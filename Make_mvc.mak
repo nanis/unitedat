@@ -12,9 +12,12 @@ EXE = .exe
 
 O = .obj
 
+# https://docs.microsoft.com/en-us/cpp/c-runtime-library/link-options?view=msvc-160
 $(PROGRAM)$(EXE): $(PROGRAM)$(O)
 	link $** \
 		Shell32.lib \
+		binmode.obj \
+		noenv.obj \
 		wsetargv.obj \
 		-Fe:$@ \
 		-subsystem:console
