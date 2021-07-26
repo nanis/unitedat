@@ -2,13 +2,13 @@ const char* UNITEDAT_VERSION = "0.0.1";
 
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN /* https://stackoverflow.com/a/11040290/100754 */
-#define NOMINMAX            /* https://stackoverflow.com/a/11544154/100754 */
+#define NOMINMAX /* https://stackoverflow.com/a/11544154/100754 */
 #include <windows.h>
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 #ifdef WINDOWS
