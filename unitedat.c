@@ -1,12 +1,14 @@
+const char* UNITEDAT_VERSION = "0.0.2";
+
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN /* https://stackoverflow.com/a/11040290/100754 */
-#define NOMINMAX            /* https://stackoverflow.com/a/11544154/100754 */
+#define NOMINMAX /* https://stackoverflow.com/a/11544154/100754 */
 #include <windows.h>
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 #ifdef WINDOWS
@@ -17,7 +19,7 @@
 #define MODE_READ "r"
 #endif
 
-#define INPUT_BUFFER_SIZE 4096
+#define INPUT_BUFFER_SIZE (32 * 1024)
 
 struct data_file_info {
     FILE *fh;
@@ -29,6 +31,15 @@ struct param
     int num_lines;
     int first_filename_idx;
 };
+
+/*
+ * Homebrew CLI argument processing because I am hard to please. I like
+ * [CLI11](https://github.com/CLIUtils/CLI11), so maybe I'll throw some C++ on
+ * this later.
+ *
+ * Takes only one argument -n/--header-lines which is the number of lines to
+ * skip from the start of the files after the first one.
+ */
 
 static struct param
 get_params(const int argc, const char* const* argv)
@@ -88,6 +99,14 @@ fill_buffer(struct data_file_info* source, uint8_t* buffer, size_t buffer_size)
     return nread;
 }
 
+/* It would have been easier to use C++ as it has a standard "getline", but
+ * sticking with C, given the choice between implementing another "getline" or
+ * trying to find an implementation I liked, or just doing block input, I went
+ * with the latter. Note that if you are dealing with data files containing Mac
+ * OS 9 style line-endings (i.e., CR only), this will not work. Apparently,
+ * Excel on OS X does this. It's nuts. I don't want to cater to it.
+ */
+
 static uint64_t
 find_data_start(struct data_file_info* source, int num_lines)
 {
@@ -96,16 +115,36 @@ find_data_start(struct data_file_info* source, int num_lines)
     uint64_t buffer_size = 0;
     int skipped_lines = 0;
 
+    // Easier to bail out early
     if (num_lines == 0) {
         return 0;
     }
 
     while (1) {
+        // This loop will be skipped the first time around because we haven't
+        // read anything into the buffer yet.
         for (offset = 0; offset < buffer_size; ++offset) {
             if (buffer[offset] == '\n') {
                 ++skipped_lines;
                 if (skipped_lines == num_lines) {
-                    return offset + 1;
+                    ++offset;
+                    // We are done, so output the header. Frankly, I don't like
+                    // the fact that find_data_start actually outputs the header
+                    // but 1) naming is hard and 2) the alternative is to
+                    // arrange for the header to be output somewhere else or to
+                    // treat the first file differently (which is what I did
+                    // originally). I like both of those alternatives even less.
+                    size_t nwritten = fwrite(buffer, 1, offset, stdout);
+                    if (nwritten < offset) {
+                        perror("Failed to write");
+                        fprintf(stderr,
+                                "Failed to write out %zu bytes of header "
+                                "(wrote %zu)\n",
+                                offset - nwritten,
+                                nwritten);
+                        exit(EXIT_FAILURE);
+                    }
+                    return offset;
                 }
             }
         }
@@ -171,9 +210,7 @@ unite(struct data_file_info* sources, int num_files, int num_lines)
 {
     uint64_t data_start = find_data_start(sources, num_lines);
 
-    cat(sources, 0);
-
-    for (int i = 1; i < num_files; ++i) {
+    for (int i = 0; i < num_files; ++i) {
         cat(sources + i, data_start);
     }
 }
