@@ -107,7 +107,24 @@ find_data_start(struct data_file_info* source, int num_lines)
             if (buffer[offset] == '\n') {
                 ++skipped_lines;
                 if (skipped_lines == num_lines) {
-                    return offset + 1;
+                    ++offset;
+                    // We are done, so output the header. Frankly, I don't like
+                    // the fact that find_data_start actually outputs the header
+                    // but 1) naming is hard and 2) the alternative is to
+                    // arrange for the header to be output somewhere else or to
+                    // treat the first file differently (which is what I did
+                    // originally). I like both of those alternatives even less.
+                    size_t nwritten = fwrite(buffer, 1, offset, stdout);
+                    if (nwritten < offset) {
+                        perror("Failed to write");
+                        fprintf(stderr,
+                                "Failed to write out %zu bytes of header "
+                                "(wrote %zu)\n",
+                                offset - nwritten,
+                                nwritten);
+                        exit(EXIT_FAILURE);
+                    }
+                    return offset;
                 }
             }
         }
@@ -173,9 +190,7 @@ unite(struct data_file_info* sources, int num_files, int num_lines)
 {
     uint64_t data_start = find_data_start(sources, num_lines);
 
-    cat(sources, 0);
-
-    for (int i = 1; i < num_files; ++i) {
+    for (int i = 0; i < num_files; ++i) {
         cat(sources + i, data_start);
     }
 }
