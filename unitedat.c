@@ -1,4 +1,4 @@
-const char* UNITEDAT_VERSION = "0.0.1";
+const char* UNITEDAT_VERSION = "0.0.2";
 
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN /* https://stackoverflow.com/a/11040290/100754 */
