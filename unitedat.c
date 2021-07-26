@@ -1,3 +1,5 @@
+const char* UNITEDAT_VERSION = "0.0.1";
+
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN /* https://stackoverflow.com/a/11040290/100754 */
 #define NOMINMAX            /* https://stackoverflow.com/a/11544154/100754 */
@@ -17,7 +19,7 @@
 #define MODE_READ "r"
 #endif
 
-#define INPUT_BUFFER_SIZE 4096
+#define INPUT_BUFFER_SIZE (16 * 1024)
 
 struct data_file_info {
     FILE *fh;
