@@ -277,6 +277,7 @@ main(int argc, char* argv[])
 #ifdef WINDOWS
     binmode_stdout();
 #endif
+
     if (!sources) {
         perror("Malloc failed");
         fprintf(stderr,
