@@ -179,6 +179,18 @@ unite(struct data_file_info* sources, int num_files, int num_lines)
 }
 
 #ifdef WINDOWS
+#include <fcntl.h>
+#include <io.h>
+
+static void
+binmode_stdout()
+{
+    if (_setmode(fileno(stdout), _O_BINARY), 0) {
+        perror("Failed to binmode stdout");
+        exit(EXIT_FAILURE);
+    }
+}
+
 static const char*
 utf8_encode(const wchar_t* source)
 {
@@ -261,6 +273,10 @@ main(int argc, char* argv[])
     struct param p = get_params(argc, narrow_argv);
     int num_files = argc - p.first_filename_idx;
     struct data_file_info* sources = malloc(num_files * sizeof(*sources));
+
+#ifdef WINDOWS
+    binmode_stdout();
+#endif
 
     if (!sources) {
         perror("Malloc failed");
