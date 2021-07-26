@@ -10,10 +10,10 @@
 #include <string.h>
 
 #ifdef WINDOWS
-#define FILE_OPEN _wfopen
+#define FILE_OPEN_FUNC(path, mode) _wfopen(path, mode)
 #define MODE_READ L"r"
 #else
-#define FILE_OPEN fopen
+#define FILE_OPEN_FUNC(path, mode) fopen(path, mode)
 #define MODE_READ "r"
 #endif
 
@@ -289,7 +289,7 @@ main(int argc, char* argv[])
     for (int i = 0; i < num_files; ++i) {
         int idx = i + p.first_filename_idx;
         sources[i].name = narrow_argv[idx];
-        sources[i].fh = FILE_OPEN(argv[idx], MODE_READ);
+        sources[i].fh = FILE_OPEN_FUNC(argv[idx], MODE_READ);
         if (!sources[i].fh) {
             perror("Failed to open file");
             fprintf(
