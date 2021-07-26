@@ -19,7 +19,7 @@ const char* UNITEDAT_VERSION = "0.0.1";
 #define MODE_READ "r"
 #endif
 
-#define INPUT_BUFFER_SIZE (16 * 1024)
+#define INPUT_BUFFER_SIZE (32 * 1024)
 
 struct data_file_info {
     FILE *fh;
