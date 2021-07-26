@@ -2,7 +2,7 @@ OPTIMIZE = -O2 -favor:INTEL64 -Qpar
 
 CC = cl
 
-CFLAGS = -MD -utf-8
+CFLAGS = -MD -utf-8 -std:c11
 
 CPPFLAGS = -DWINDOWS
 
